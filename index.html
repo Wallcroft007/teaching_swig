@@ -7,6 +7,16 @@
 	<script src="http://code.jquery.com/jquery-2.1.3.min.js"></script>
 	<script src="js/bootstrap.min.js"></script>
 	<script src="js/swig.js"></script>
+	<style>
+	.poison{ background-color: purple; color:white; border-radius: 5px; opacity: 0.8;}
+	.grass, .bug{ background-color: green; color:white; border-radius: 5px; opacity: 0.8;}
+	.fire{ background-color: red; color:white; border-radius: 5px; opacity: 0.8;}
+	.water{ background-color: #0079a1; color:white; border-radius: 5px; opacity: 0.8;}
+	.normal{ background-color: #c1b435; color:white; border-radius: 5px; opacity: 0.8;}
+	.fairy{ background-color: #ae64bd; color:white; border-radius: 5px; opacity: 0.8;}
+	.ground{ background-color: brown; color:white; border-radius: 5px; opacity: 0.8;}
+	.electric{ background-color: yellow; color:black; border-radius: 5px; opacity: 0.8;}
+	</style>
 </head>
 <body>
 	<!-- BARRA DE NAVEGACION -->
@@ -57,11 +67,10 @@
 				  <div class="panel-body">
 				    <div>
 				    	<a href="http://pokeapi.co{{ pk.pokemon.sprite.image }}" class="thumbnail" target="_blank">
-					      <img src="http://pokeapi.co{{ pk.pokemon.sprite.image }}" alt="...">
+					      <img style="height:120px;" src="http://pokeapi.co{{ pk.pokemon.sprite.image }}" alt="...">
 					    </a>
 				    </div>
 				    <div>
-				    	<p><strong>Species:</strong> <span class="text-capitalize">seed pokemon</span></p>
 				    	<p><strong>Attack:</strong> 
 				    		<span class="text-capitalize">{{ pk.pokemon.attack }}</span></p>
 						<p><strong>Defense:</strong> <span class="text-capitalize">{{ pk.pokemon.defense }}</span></p>
@@ -124,7 +133,6 @@
 				};
 				var html = render( json );
 				$("#pokemon_container").html(html);
-				console.log(json);
 				$("#consultar").removeClass('disabled');
 			}, 3000);
 		}
