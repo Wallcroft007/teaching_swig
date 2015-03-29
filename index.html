@@ -32,15 +32,9 @@
 		<!-- ENCABEZADO -->
 			<div class="row">
 				<div class="page-header">
-				  <h3>Usando Swig como motor de templates 
+				  <h3>Pokedex. <span style="font-size: 14px;">Utilizando Swig como Template Engine</span>
 				  <div style="width: 200px;display:inline-block;float:right;">
-				  	<select id="rango" class="form-control" style="display:inline-block;width: 100px;">
-				  		<option value="1_10">1 al 10</option>
-				  		<option value="11_20">11 al 20</option>
-				  		<option value="21_30">21 al 30</option>
-				  		<option value="31_40">31 al 40</option>
-				  		<option value="41_50">41 al 50</option>
-				  	</select>
+				  	<select id="rango" class="form-control" style="display:inline-block;width: 100px;"></select>
 				  	<button id="consultar" class="btn btn-primary btn-sm">Consultar</button>
 				  </div>
 				  </h3>
@@ -54,45 +48,63 @@
 
 	</div>
 	<script type="text/template" id="template">
-		<div class="col-md-3">
-			<div class="panel panel-default">
-			  <div class="panel-heading" style="text-align:center;">Bulbasaur</div>
-			  <div class="panel-body">
-			    <div>
-			    	<a href="#" class="thumbnail">
-				      <img src="http://pokeapi.co/media/img/1383571573.78.png" alt="...">
-				    </a>
-			    </div>
-			    <div>
-			    	<p>Este es un poquemon muy coqueto que todos aman y les gustaria tener alguno un dia de estos.</p>
-			    	<p><strong>Species:</strong> <span class="text-capitalize">seed pokemon</span></p>
-			    	<p><strong>Attack:</strong> 
-			    		<span class="text-capitalize">49</span></p>
-					<p><strong>Defense:</strong> <span class="text-capitalize">50</span></p>
-			    </div>
-			  </div>
+		{% for pk in pokemons %}
+			<div class="col-md-3">
+				<div class="panel panel-default">
+				  <div class="panel-heading" style="text-align:center;">
+				  	#{{ pk.pokemon.pkdx_id }} {{ pk.pokemon.name }}
+				  </div>
+				  <div class="panel-body">
+				    <div>
+				    	<a href="http://pokeapi.co{{ pk.pokemon.sprite.image }}" class="thumbnail" target="_blank">
+					      <img src="http://pokeapi.co{{ pk.pokemon.sprite.image }}" alt="...">
+					    </a>
+				    </div>
+				    <div>
+				    	<p><strong>Species:</strong> <span class="text-capitalize">seed pokemon</span></p>
+				    	<p><strong>Attack:</strong> 
+				    		<span class="text-capitalize">{{ pk.pokemon.attack }}</span></p>
+						<p><strong>Defense:</strong> <span class="text-capitalize">{{ pk.pokemon.defense }}</span></p>
+						<p><strong>Types:</strong>
+						{% for type in pk.pokemon.types %}
+							<span class="label label-default {{ type.name }} text-capitalize">{{ type.name }}</span>
+						{% endfor %}
+						</p>
+				    </div>
+				  </div>
+				</div>
 			</div>
-		</div>
+		{% endfor %}
 	</script>
 	<script>
 		var html = $("#template").html();
 		var render = swig.compile( html );
 
+		var llenarSelect = function(){
+			var inicio = 1;
+			var diferencia = 7;
+			for (var i = 1; i <= 90; i++) {
+				var fin = inicio+diferencia;
+				if(fin>718) fin = 718;
+				var html = "<option value='"+inicio+"_"+fin+"'>"+inicio+" al "+fin+"</option>";
+				$("#rango").append(html);
+				inicio = fin+1;
+			};
+		};
+
 		var Pokemon = function(id){
 			this.url_pokemon = "http://pokeapi.co/api/v1/pokemon/"+id;
-			this.url_description = "http://pokeapi.co";
 			this.url_sprite = "http://pokeapi.co";
 			this.pokemon = {};
 			var self = this;
-			$.get(this.url_pokemon, function(data){
-				self.pokemon = data;
-				self.url_description = self.url_description+data.descriptions[0].resource_uri;
-				self.url_sprite = self.url_sprite+data.sprites[0].resource_uri;
-				$.get(self.url_description, function(data){
-					self.pokemon['description'] = data;
-					$.get(self.url_sprite, function(data){
-						self.pokemon['sprite'] = data;
-					});
+			$.when(
+				$.get(this.url_pokemon, function(data){
+					self.pokemon = data;
+					self.url_sprite = self.url_sprite+data.sprites[0].resource_uri;	
+				})
+			).then(function(data){
+				$.get(self.url_sprite, function(data){
+					self.pokemon['sprite'] = data;
 				});
 			});
 			return this;
@@ -100,14 +112,25 @@
 
 		var crearPokemons = function()
 		{
+			$("#consultar").addClass('disabled');
 			var lista_pokemons = [];
 			var rango = $("#rango").val().split("_");
 			for( var i = parseInt(rango[0]); i <= parseInt(rango[1]); i++ ){
 				lista_pokemons.push( new Pokemon(i) );
 			}
-			var html = render( { pokemons : lista_pokemons } );
-			$("#pokemon_container").html(html);
+			setTimeout(function(){
+				var json = {
+					pokemons : lista_pokemons
+				};
+				var html = render( json );
+				$("#pokemon_container").html(html);
+				console.log(json);
+				$("#consultar").removeClass('disabled');
+			}, 3000);
 		}
+
+		llenarSelect();
+		crearPokemons();
 
 		$("#consultar").on('click', crearPokemons);
 
